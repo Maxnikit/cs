@@ -1,43 +1,75 @@
+/* eslint-disable no-plusplus */
 /* eslint-disable max-classes-per-file */
 import "normalize.css";
 import "./style.css";
 
-import { LinkedList } from "./linkedlist";
-import { HashMap } from "./hashmap";
-import { Tree, Node } from "./bst";
-
-function buildTree(array) {
-  if (array.length === 0) {
-    return null;
+const knightPossibleMoves = [
+  [-2, -1],
+  [-2, 1],
+  [-1, -2],
+  [-1, 2],
+  [1, -2],
+  [1, 2],
+  [2, -1],
+  [2, 1],
+];
+function getKnightNextPositions(currentLocation) {
+  const x = currentLocation[0];
+  const y = currentLocation[1];
+  const nextPositions = [];
+  for (let i = 0; i < knightPossibleMoves.length; i++) {
+    const nextX = x + knightPossibleMoves[i][0];
+    const nextY = y + knightPossibleMoves[i][1];
+    if (nextX >= 0 && nextX < 8 && nextY >= 0 && nextY < 8) {
+      nextPositions.push([nextX, nextY]);
+    }
   }
-  const uniqueArray = [...new Set(array.sort((a, b) => a - b))];
-
-  const tree = new Tree();
-  const middle = Math.floor(uniqueArray.length / 2);
-
-  tree.root = new Node(uniqueArray[middle]);
-
-  const left = uniqueArray.slice(0, middle);
-  const right = uniqueArray.slice(middle + 1);
-
-  tree.root.left = buildTree(left);
-  tree.root.right = buildTree(right);
-
-  return tree.root;
+  return nextPositions;
 }
-const myTree = buildTree([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]);
-console.log(myTree);
+function knightMoves(currentLocation, targetLocation) {
+  const moveQueue = [];
+  const visited = new Set();
+  moveQueue.push({
+    position: currentLocation,
+    depth: 0,
+    path: [currentLocation],
+  });
 
-const prettyPrint = (node, prefix = "", isLeft = true) => {
-  if (node === null) {
-    return;
+  while (moveQueue.length > 0) {
+    const { position, depth, path } = moveQueue.shift();
+    const [x, y] = position;
+
+    if (x === targetLocation[0] && y === targetLocation[1]) {
+      return `${depth} moves: ${path.join(" -> ")}`;
+    }
+
+    visited.add(position.toString());
+
+    const nextPositions = getKnightNextPositions(position);
+
+    nextPositions.forEach((next) => {
+      if (!visited.has(next.toString())) {
+        moveQueue.push({
+          position: next,
+          depth: depth + 1,
+          path: [...path, next],
+        });
+        visited.add(next.toString());
+      }
+    });
   }
-  if (node.right !== null) {
-    prettyPrint(node.right, `${prefix}${isLeft ? "│   " : "    "}`, false);
+
+  return -1; // If no path is found, which should not happen on a standard chessboard
+}
+
+function initChessboard() {
+  const size = 8;
+  const chessboard = [];
+  for (let i = 0; i < size; i++) {
+    chessboard[i] = new Array(size).fill(false);
   }
-  console.log(`${prefix}${isLeft ? "└── " : "┌── "}${node.data}`);
-  if (node.left !== null) {
-    prettyPrint(node.left, `${prefix}${isLeft ? "    " : "│   "}`, true);
-  }
-};
-prettyPrint(myTree);
+  return chessboard;
+}
+const chessboard = initChessboard();
+
+console.log(knightMoves([4, 0], [7, 4]));
